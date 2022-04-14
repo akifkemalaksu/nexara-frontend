@@ -1,6 +1,8 @@
-export default class CountryService {
+import ServiceBase from "./ServiceBase";
 
+export default class CountryService extends ServiceBase {
+    apiCountryPath = "country";
     getCountries() {
-        return fetch('data/countries.json').then(res => res.json()).then(d => d.data);
+        return this.service.get(this.apiCountryPath);
     }
 }
