@@ -8,6 +8,7 @@
     <Button
       label="Siparişler"
       class="p-button-secondary p-button-text mr-2 mb-2"
+      @click="$router.push('order-list')"
     />
 
     <Button

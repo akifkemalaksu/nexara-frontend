@@ -1,7 +1,7 @@
 import ServiceBase from "./ServiceBase";
 
 export default class CountryService extends ServiceBase {
-    apiCountryPath = "country";
+    apiCountryPath = "countries";
     getCountries() {
         return this.service.get(this.apiCountryPath);
     }

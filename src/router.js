@@ -8,6 +8,16 @@ const routes = [
         component: App,
         children: [
             {
+                path: '',
+                name: 'orderlist',
+                component: () => import('./components/OrderList.vue')
+            },
+            {
+                path: '/order-list',
+                name: 'orderlist',
+                component: () => import('./components/OrderList.vue')
+            },
+            {
                 path: '/create-order',
                 name: 'createorder',
                 component: () => import('./components/CreateOrder.vue')

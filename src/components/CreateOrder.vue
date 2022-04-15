@@ -1,4 +1,6 @@
 <template>
+  <ConfirmDialog />
+  <Toast />
   <div class="card p-fluid">
     <h5>Sipariş Oluştur</h5>
     <form @submit.prevent="handleSubmit(!v$.$invalid)" class="p-fluid">
@@ -112,7 +114,6 @@
       </div>
     </form>
   </div>
-  <Toast />
 </template>
 
 <script>
@@ -205,18 +206,25 @@ export default {
     },
 
     handleSubmit(isFormValid) {
-      console.log(isFormValid);
-      console.log(this.$toast);
-
       if (isFormValid) {
-        let order = this.createOrderModel();
-        this.orderService
-          .addOrder(order)
-          .then((response) => {
-            console.log(response);
-          })
-          .catch((error) => console.log(error));
-        console.log(order);
+        this.$confirm.require({
+          message: "Siparişi eklemek istediğinize emin misiniz?",
+          icon: "pi pi-info-circle",
+          acceptClass: "p-button-danger",
+          acceptLabel: "Evet",
+          rejectLabel: "Hayır",
+          accept: () => {
+            this.addOrder();
+          },
+          reject: () => {
+            this.$toast.add({
+              severity: "warn",
+              summary: "Uyarı!",
+              detail: "Ekleme işlemini reddeddiniz.",
+              life: 3000,
+            });
+          },
+        });
       } else {
         this.$toast.add({
           severity: "warn",
@@ -235,24 +243,93 @@ export default {
       order.orderDetails = [];
 
       for (let i = 0; i < this.sizeIds.length; i++) {
-        let orderDetail = new AddOrderDetailModel();
-        orderDetail.productModelId = this.productModelId;
-        orderDetail.patternId = this.patternId;
-        orderDetail.seasonId = this.seasonId;
-        orderDetail.colorId = this.colorId;
-        orderDetail.sizeSetId = this.sizeSetId;
-        orderDetail.sizeId = this.sizeIds[i];
-        orderDetail.piece = this.sizePieces[i];
+        if (this.sizePieces[i] > 0) {
+          let orderDetail = new AddOrderDetailModel();
+          orderDetail.productModelId = this.productModelId;
+          orderDetail.patternId = this.patternId;
+          orderDetail.seasonId = this.seasonId;
+          orderDetail.colorId = this.colorId;
+          orderDetail.sizeSetId = this.sizeSetId;
+          orderDetail.sizeId = this.sizeIds[i];
+          orderDetail.piece = this.sizePieces[i];
 
-        order.orderDetails.push(orderDetail);
+          order.orderDetails.push(orderDetail);
+        }
+      }
+
+      if (!order.orderDetails.length > 0) {
+        return null;
       }
 
       return order;
     },
 
-    addOrder(order) {
-      this.orderService.addOrder(order).then((response) => {
-        console.log(response);
+    addOrder() {
+      let order = this.createOrderModel();
+      if (!order) {
+        this.$toast.add({
+          severity: "warn",
+          summary: "Uyarı!",
+          detail: "Lütfen tüm alanları doldurunuz.",
+          life: 3000,
+        });
+      } else {
+        this.orderService
+          .addOrder(order)
+          .then((response) => {
+            console.log(response);
+            this.$router.push("/order-list", () => {
+              this.$toast.add({
+                severity: "success",
+                summary: "Başarılı!",
+                detail: "Kayıt başarılı.",
+                life: 3000,
+              });
+            });
+          })
+          .catch((error) => console.log(error));
+      }
+    },
+    loadColors() {
+      this.colorService.getColors().then((response) => {
+        if (response.data.success) {
+          this.colors = response.data.data;
+        }
+      });
+    },
+    loadCountries() {
+      this.countryService.getCountries().then((response) => {
+        if (response.data.success) {
+          this.countries = response.data.data;
+        }
+      });
+    },
+    loadPatterns() {
+      this.patternService.getPatterns().then((response) => {
+        if (response.data.success) {
+          this.patterns = response.data.data;
+        }
+      });
+    },
+    loadProductModels() {
+      this.productModelService.getProductModels().then((response) => {
+        if (response.data.success) {
+          this.productModels = response.data.data;
+        }
+      });
+    },
+    loadSeasons() {
+      this.seasonService.getSeasons().then((response) => {
+        if (response.data.success) {
+          this.seasons = response.data.data;
+        }
+      });
+    },
+    loadSizeSets() {
+      this.sizeSetService.getSizeSets().then((response) => {
+        if (response.data.success) {
+          this.sizeSets = response.data.data;
+        }
       });
     },
   },
@@ -267,41 +344,12 @@ export default {
     this.orderService = new OrderService();
   },
   mounted() {
-    this.colorService.getColors().then((response) => {
-      if (response.data.success) {
-        this.colors = response.data.data;
-      }
-    });
-
-    this.countryService.getCountries().then((response) => {
-      if (response.data.success) {
-        this.countries = response.data.data;
-      }
-    });
-
-    this.patternService.getPatterns().then((response) => {
-      if (response.data.success) {
-        this.patterns = response.data.data;
-      }
-    });
-
-    this.productModelService.getProductModels().then((response) => {
-      if (response.data.success) {
-        this.productModels = response.data.data;
-      }
-    });
-
-    this.seasonService.getSeasons().then((response) => {
-      if (response.data.success) {
-        this.seasons = response.data.data;
-      }
-    });
-
-    this.sizeSetService.getSizeSets().then((response) => {
-      if (response.data.success) {
-        this.sizeSets = response.data.data;
-      }
-    });
+    this.loadColors();
+    this.loadCountries();
+    this.loadPatterns();
+    this.loadProductModels();
+    this.loadSeasons();
+    this.loadSizeSets();
   },
 };
 </script>
